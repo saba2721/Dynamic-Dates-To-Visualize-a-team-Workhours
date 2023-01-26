@@ -1,0 +1,67 @@
+
+step 1 :  Create a parameter (Days/Weeks/Month)
+
+step2 : Create a calculated field(Date_level)
+
+date(CASE [Day/week/Month]
+WHEN 'day' then DATETRUNC('day',[Date])
+when 'week' then DATETRUNC('week',[Date])
+ELSE DATETRUNC('month',[Date])
+end)
+
+step3 : Create two parameters(start_date) , (End_date)
+
+step4 : Add one more row ('Default') in parameter (Days/Weeks/Month)
+
+step5 : Create a calculated field [Default_date_level]
+
+DATE(IF DATEDIFF('day',[Start_date],[End_date]) < 28 THEN DATETRUNC('day',[Date])
+ELSEIF DATEDIFF('day',[Start_date],[End_date]) < 90 THEN DATETRUNC('week',[Date])
+ELSE DATETRUNC('month',[Date])
+end)
+
+step6 : Connect [Default_date_level] with (Date_level) and change name (Date_level) --> [Dynamic_date_level]
+
+date(CASE [Day/week/Month]
+WHEN 'Default' then [Default_date_level]
+WHEN 'day' then DATETRUNC('day',[Date])
+when 'week' then DATETRUNC('week',[Date])
+ELSE DATETRUNC('month',[Date])
+end)
+
+step7 : Bring Project in filter
+
+step8 : Create a calculated field [Date_filter] to keep [start_date] < [End_date]
+
+[Date] >= [start_date]
+and
+[Date] <= [End_date]
+
+Bring [Date_filter] to filter section and select 'True'
+
+step9 : Create calculated field [No_of_hours]
+
+floor(SUM([Minutes])/60)
+
+step10 : Create calculated field [Date_label]
+
+str([No_of_hours])+'hr'+str(sum([Minutes]) - [No_of_hours]*60)
+
+step11 : Create two calculated fields to update date header according to our [Dynamic_date_level] field
+
+1. [Default_date_label]
+
+DATE(IF DATEDIFF('day',[Start_date],[End_date]) < 28 THEN
+ DATENAME('day',(DATETRUNC('day',[Date])))
+ELSEIF DATEDIFF('day',[Start_date],[End_date]) < 90 THEN 
+datename('week',(DATETRUNC('week',[Date])))
+ELSE datename('month',(DATETRUNC('month',[Date])))
+end)
+
+2. STR(CASE [Day/week/Month]
+WHEN 'Default' then str([Default_date_level])
+WHEN 'day' then datename('weekday',(DATETRUNC('day',[Date])))
+when 'week' then ('WK' + (datename('week',(DATETRUNC('week',[Date])))))
+ELSE datename('month',(DATETRUNC('month',[Date])))
+end)
+
